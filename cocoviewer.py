@@ -132,7 +132,9 @@ def visualize(img_path: str, annotations: list, cat_map: dict,
               skeleton=None):
     img = cv2.imread(img_path)
     if img is None:
-        raise FileNotFoundError(f"Cannot read image: {img_path}")
+        error = f"Cannot read image: {img_path}"
+        LOGGER.error(error)
+        raise FileNotFoundError(error)
 
     for ann in annotations:
         cat_id  = ann.get("category_id", 0)
@@ -249,7 +251,10 @@ def main():
                    if c["name"].lower() == args.category.lower()}
         if not cat_ids:
             available = [c["name"] for c in coco.get("categories", [])]
-            raise SystemExit(f"Category '{args.category}' not found. Available: {available}")
+            error = f"Category '{args.category}' not found. Available: {available}"
+            LOGGER.error(error)
+            raise SystemExit(error)
+        
         filtered_img_ids = {a["image_id"] for a in coco.get("annotations", [])
                             if a.get("category_id") in cat_ids}
         images = {k: v for k, v in images.items() if k in filtered_img_ids}
@@ -285,7 +290,7 @@ def main():
                               show_kp=not args.no_kp,
                               skeleton=skeleton)
         except FileNotFoundError as e:
-            LOGGER.info(f"  WARNING: {e} - skipping")
+            LOGGER.warning(f"  WARNING: {e} - skipping")
             continue
 
         if args.save_dir:
@@ -302,7 +307,9 @@ def main():
         )
     LOGGER.info('Rendering complete.')
     if not frames:
-        raise SystemExit("No images could be loaded.")
+        error = "No images could be loaded."
+        LOGGER.error(error)
+        raise SystemExit(error)
 
     LOGGER.info(f"\nLoaded {len(frames)} images.")
     LOGGER.info("Controls: <- / -> (or a/d/p/n) to navigate  |  s = save  |  q / Esc = quit\n")
