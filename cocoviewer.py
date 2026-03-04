@@ -1,10 +1,3 @@
-"""
-COCO Annotation Visualizer
-Usage:
-    python coco_visualizer.py --images /path/to/images --annotations /path/to/annotations.json
-    python coco_visualizer.py --images ./images --annotations ./annotations.json --category person --limit 20
-"""
-
 import json
 import random
 import argparse
