@@ -29,7 +29,7 @@ This project makes a simple GUI to visualize datasets in the COCO format with su
 ## Usage
 
 
-Usage:
+Run the GUI via terminal:
 ```sh
 python cocoviewer.py [-h] --images IMAGES --annotations ANNOTATIONS [--category CATEGORY] [--limit LIMIT] [--no-seg] [--no-kp] [--save-dir SAVE_DIR] [--shuffle]
 ```
@@ -39,6 +39,7 @@ Such as:
 python cocoviewer.py --images 'path/to/images/folder' --annotations 'path/to/annotation_file.json' --limit 100 --shuffle
 ```
 
+Use arrow-keys `<` and `>` to navigate the samples. `s` saves current frame. `q` to quit the GUI.
 
 Use the `--help` comand to explore the command line arguments.
 
