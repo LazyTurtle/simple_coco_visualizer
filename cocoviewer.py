@@ -6,7 +6,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from utils import loading_bar, logging
+from utils import loading_bar, logging, annotation_analyzer
 
 LOGGER = logging.get_logger('Main', out_folder='logs/')
 
@@ -211,19 +211,25 @@ def check_unannotated_images(images: dict, images_folder: str) -> list:
 
 def main():
     parser = argparse.ArgumentParser(description="Simple COCO visualizer")
-    parser.add_argument("--images",      required=True, help="Directory containing images")
-    parser.add_argument("--annotations", required=True, help="Path to COCO JSON file")
-    parser.add_argument("--category",    default=None,  help="Filter by category name")
-    parser.add_argument("--limit",       type=int, default=50, help="Max images to load (default 50)")
-    parser.add_argument("--no-seg",      action="store_true",  help="Hide segmentation masks")
-    parser.add_argument("--no-kp",       action="store_true",  help="Hide keypoints")
-    parser.add_argument("--save-dir",    default=None,  help="Directory to save visualisations (optional)")
-    parser.add_argument("--shuffle",     action="store_true",  help="Shuffle images before display")
+    parser.add_argument("--images",         required=True, help="Directory containing images")
+    parser.add_argument("--annotations",    required=True, help="Path to COCO JSON file")
+    parser.add_argument("--category",       default=None,  help="Filter by category name")
+    parser.add_argument("--limit",          type=int, default=50, help="Max images to load (default 50)")
+    parser.add_argument("--no-seg",         action="store_true",  help="Hide segmentation masks")
+    parser.add_argument("--no-kp",          action="store_true",  help="Hide keypoints")
+    parser.add_argument("--save-dir",       default=None,  help="Directory to save visualisations (optional)")
+    parser.add_argument("--shuffle",        action="store_true",  help="Shuffle images before display")
+    parser.add_argument("--analyze",        action=argparse.BooleanOptionalAction, default=False, help="Shows statistics regarding the labels.")
+
     args = parser.parse_args()
 
     LOGGER.info("Loading annotations ...")
     coco = load_coco(args.annotations)
     LOGGER.info('Annotation loaded')
+    
+    if args.analyze:
+        analyze_annotations(coco)
+    
     LOGGER.info('Building index')
     images, anns_by_img, cat_map = build_index(coco)
     LOGGER.info('Index build')
@@ -296,7 +302,7 @@ def main():
         loading_bar.print_progress_bar(
             i+1,
             len(img_ids),
-            'Rendering images:'
+            f'Rendering images {i+1}/{len(img_ids)}:'
         )
     LOGGER.info('Rendering complete.')
     if not frames:
@@ -308,6 +314,17 @@ def main():
     LOGGER.info("Controls: <- / -> (or a/d/p/n) to navigate  |  s = save  |  q / Esc = quit\n")
     display_loop(frames, titles, output_dir=args.save_dir)
 
+def analyze_annotations(annotations:dict) -> None:
+    LOGGER.info('Analyzing the annotations')
+    LOGGER.info(str(annotation_analyzer.info(annotations)))
+    supercategories = annotation_analyzer.super_categories(annotations)
+    LOGGER.info(f'Supercategories: {supercategories}')
+    for supercategory in supercategories:
+        categories = annotation_analyzer.categories_of_supercategory(supercategory,annotations)
+        LOGGER.info(f'Categories of "{supercategory}": {categories}')
+    images = annotation_analyzer.images(annotations)
+    LOGGER.info(f'Number of images: {len(images)}')
+    LOGGER.info(str(sorted(images)))
 
 if __name__ == "__main__":
     main()
